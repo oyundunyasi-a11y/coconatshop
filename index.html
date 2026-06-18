@@ -500,6 +500,9 @@
             gelenSiparisler.push(yeniSiparis);
             siparisPaneliniGuncelle();
 
+gelenSiparisler.push(yeniSiparis);
+            siparisPaneliniGuncelle();
+
             const mesaj = `🎉 COCONUT SHOP YENİ SİPARİŞ! 🎉\n----------------------------------\n🛍 Ürün: ${secilenBileklik.isim}\n💰 Tutar: ${secilenBileklik.fiyat.toFixed(2)} TL\n💳 Ödeme: IBAN (EFT) Transferi\n----------------------------------\n👤 Müşteri: ${adSoyad}\n📞 Tel: ${telefon}\n📍 Adres: ${adres}\n----------------------------------`;
             
             navigator.clipboard.writeText(mesaj);
