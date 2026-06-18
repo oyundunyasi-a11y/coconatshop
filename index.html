@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coconat Shap - Özel El Yapımı Tasarımlar</title>
+    <title>Coconat Shop - Özel El Yapımı Tasarımlar</title>
     <style>
         :root {
             --purple-main: #8e44ad;
             --pink-main: #fd79a8;
-            --bg-color: #ffffff; /* Arka plan tamamen beyaz yapıldı */
+            --bg-color: #ffffff; /* Tamamen beyaz arka plan */
             --card-bg: #ffffff;
             --text-color: #2d3436;
         }
@@ -75,7 +75,7 @@
             background: var(--card-bg);
             border-radius: 15px;
             padding: 12px;
-            border: 1px solid #f1f2f6; /* Beyaz arka planda kartlar belli olsun diye ince çizgi eklendi */
+            border: 1px solid #f1f2f6; /* Kartların beyaz zeminde belli olması için kibar bir kenarlık */
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
@@ -291,7 +291,7 @@
 <body>
 
     <div class="header-banner">
-        <h1>Coconat Shap</h1>
+        <h1>Coconat Shop</h1>
         <p>Özel El Yapımı Tasarımlar</p>
     </div>
 
@@ -497,4 +497,113 @@
                 musteriAdres: adres
             };
 
-            gelen
+            gelenSiparisler.push(yeniSiparis);
+            siparisPaneliniGuncelle();
+
+            const mesaj = `🎉 COCONUT SHOP YENİ SİPARİŞ! 🎉\n----------------------------------\n🛍 Ürün: ${secilenBileklik.isim}\n💰 Tutar: ${secilenBileklik.fiyat.toFixed(2)} TL\n💳 Ödeme: IBAN (EFT) Transferi\n----------------------------------\n👤 Müşteri: ${adSoyad}\n📞 Tel: ${telefon}\n📍 Adres: ${adres}\n----------------------------------`;
+            
+            navigator.clipboard.writeText(mesaj);
+            alert("Sipariş özetiniz kopyalandı! Şimdi siparişi onaylamak için Instagram sayfamıza yönlendiriliyorsunuz.");
+
+            modalKapat('satinal-modal');
+            
+            document.getElementById('siparis-adsoyad').value = '';
+            document.getElementById('siparis-telefon').value = '';
+            document.getElementById('siparis-adres').value = '';
+
+            window.open("https://www.instagram.com/coconut_02026/", "_blank");
+        }
+
+        function siparisPaneliniGuncelle() {
+            const liste = document.getElementById('gelen-siparisler-listesi');
+            if(gelenSiparisler.length === 0) {
+                liste.innerHTML = '<p style="color: gray; font-size: 14px;">Henüz sipariş gelmedi.</p>';
+                return;
+            }
+
+            liste.innerHTML = '';
+            gelenSiparisler.forEach(s => {
+                liste.innerHTML += `
+                    <div class="siparis-karti">
+                        <strong>🛍 Ürün:</strong> ${s.urunAdi}<br>
+                        <strong>👤 Müşteri:</strong> ${s.musteriAdSoyad}<br>
+                        <strong>📞 Tel:</strong> ${s.musteriTelefon}<br>
+                        <strong>📍 Adres:</strong> ${s.musteriAdres}<br>
+                        <span style="color:var(--pink-main); font-weight:bold;">💰 Tutar: ${s.fiyat.toFixed(2)} TL</span>
+                    </div>
+                `;
+            });
+        }
+
+        function adminGirisYap() {
+            const kadi = document.getElementById('admin-kadi').value;
+            const sifre = document.getElementById('admin-sifre').value;
+
+            if(kadi === 'lorin' && sifre === 'lorin2018') {
+                isAdminGirisYapti = true;
+                document.getElementById('admin-login-box').style.display = 'none';
+                document.getElementById('admin-panel-box').style.display = 'block';
+                document.getElementById('admin-arti-btn').style.display = 'block';
+                document.getElementById('login-hata').style.display = 'none';
+                siparisPaneliniGuncelle();
+            } else {
+                document.getElementById('login-hata').style.display = 'block';
+            }
+        }
+
+        function adminCikisYap() {
+            isAdminGirisYapti = false;
+            document.getElementById('admin-login-box').style.display = 'block';
+            document.getElementById('admin-panel-box').style.display = 'none';
+            document.getElementById('admin-arti-btn').style.display = 'none';
+            document.getElementById('admin-kadi').value = '';
+            document.getElementById('admin-sifre').value = '';
+        }
+
+        function urunEkle() {
+            const ad = document.getElementById('yeni-urun-ad').value;
+            const fiyat = parseFloat(document.getElementById('yeni-urun-fiyat').value);
+            const renkler = document.getElementById('yeni-urun-renkler').value;
+            const aciklama = document.getElementById('yeni-urun-aciklama').value;
+            const dosyaGirdisi = document.getElementById('yeni-urun-dosya');
+
+            if(!ad || !fiyat) {
+                alert("Lütfen ürün adı ve fiyat alanlarını doldurun!");
+                return;
+            }
+
+            const yeniUrun = {
+                id: Date.now(),
+                isim: ad,
+                fiyat: fiyat,
+                aciklama: aciklama,
+                renkler: renkler,
+                gercekFotograf: null
+            };
+
+            if (dosyaGirdisi.files && dosyaGirdisi.files[0]) {
+                const okuyucu = new FileReader();
+                okuyucu.onload = function(e) {
+                    yeniUrun.gercekFotograf = e.target.result;
+                    bileklikler.unshift(yeniUrun);
+                    vitrinGuncelle();
+                }
+                okuyucu.readAsDataURL(dosyaGirdisi.files[0]);
+            } else {
+                bileklikler.unshift(yeniUrun);
+                vitrinGuncelle();
+            }
+
+            modalKapat('urun-ekle-modal');
+            
+            document.getElementById('yeni-urun-ad').value = '';
+            document.getElementById('yeni-urun-fiyat').value = '';
+            document.getElementById('yeni-urun-renkler').value = '';
+            document.getElementById('yeni-urun-aciklama').value = '';
+            dosyaGirdisi.value = '';
+        }
+
+        vitrinGuncelle();
+    </script>
+</body>
+</html>
