@@ -2,7 +2,36 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Coconat Shop - Gerçek Veritabanı Sürümü</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coconat Shop</title>
+    <style>
+        :root { --mor: #8e44ad; --pembe: #fd79a8; }
+        body { font-family: sans-serif; margin: 0; padding-bottom: 70px; background: #fff; }
+        .banner { background: linear-gradient(135deg, var(--mor), var(--pembe)); color: white; text-align: center; padding: 25px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; }
+        .kart { border: 1px solid #eee; padding: 10px; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); text-align: center; }
+        .btn { width: 100%; padding: 10px; background: var(--mor); color: white; border: none; border-radius: 8px; cursor: pointer; margin-top: 5px; }
+        #admin-panel { padding: 20px; border-top: 2px solid #eee; margin-top: 20px; }
+    </style>
+</head>
+<body>
+
+    <div class="banner">
+        <h1>Coconat Shop</h1>
+        <p>Özel El Yapımı Tasarımlar</p>
+    </div>
+
+    <div id="vitrin" class="grid">
+        <p>Ürünler yükleniyor...</p>
+    </div>
+
+    <div id="admin-panel">
+        <h3>Admin Paneli (Ürün Ekle)</h3>
+        <input type="text" id="uAd" placeholder="Ürün Adı"><br>
+        <input type="number" id="uFiyat" placeholder="Fiyat"><br>
+        <button class="btn" onclick="urunEkle()">Ürünü Buluta Kaydet</button>
+    </div>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, addDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -13,20 +42,36 @@
             projectId: "coconatshop-d8ffb",
             storageBucket: "coconatshop-d8ffb.firebasestorage.app",
             messagingSenderId: "1041409320824",
-            appId: "1:1041409320824:web:b22b9bbe9effc4587dca8d",
-            measurementId: "G-JN2SRH5BXL"
+            appId: "1:1041409320824:web:b22b9bbe9effc4587dca8d"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Şimdi bu 'db' (veritabanı) üzerinden ürünleri ve siparişleri 
-        // gerçek zamanlı olarak buluta kaydedip okuyabiliriz.
-        console.log("Coconat Shop Bulut Veritabanına Bağlandı!");
+        // Vitrini Güncelle
+        onSnapshot(collection(db, "urunler"), (snapshot) => {
+            const vitrin = document.getElementById("vitrin");
+            vitrin.innerHTML = "";
+            snapshot.forEach((doc) => {
+                const u = doc.data();
+                vitrin.innerHTML += `
+                    <div class="kart">
+                        <h4>${u.isim}</h4>
+                        <p>${u.fiyat} TL</p>
+                        <button class="btn" onclick="alert('Sipariş alındı: ${u.isim}')">Satın Al</button>
+                    </div>`;
+            });
+        });
+
+        // Ürün Ekleme Fonksiyonu
+        window.urunEkle = async () => {
+            const isim = document.getElementById("uAd").value;
+            const fiyat = document.getElementById("uFiyat").value;
+            if(isim && fiyat) {
+                await addDoc(collection(db, "urunler"), { isim, fiyat });
+                alert("Ürün başarıyla buluta eklendi!");
+            }
+        };
     </script>
-</head>
-<body>
-    <h1>Coconat Shop Buluta Bağlandı!</h1>
-    <p>Sitenin arayüzünü ve veritabanı bağlantılarını birleştirmek için hazırım.</p>
 </body>
 </html>
