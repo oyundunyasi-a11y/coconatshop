@@ -3,12 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Coconat Shop - Özel El Yapımı Tasarımlar</title>
+    <title>Coconat Shop - Güvenli Alışveriş</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <style>
         :root {
             --purple-main: #8e44ad;
             --pink-main: #fd79a8;
-            --bg-color: #ffffff; /* Tamamen beyaz arka plan */
+            --bg-color: #ffffff;
             --card-bg: #ffffff;
             --text-color: #2d3436;
         }
@@ -26,6 +27,29 @@
             padding-bottom: 60px;
         }
 
+        /* Giriş / Kayıt / E-posta Doğrulama Ekranı */
+        #giris-ekrani {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: white;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .giris-kutu {
+            max-width: 400px;
+            width: 100%;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #f1f2f6;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
         /* Üst Banner */
         .header-banner {
             background: linear-gradient(135deg, var(--purple-main), var(--pink-main));
@@ -41,11 +65,6 @@
             font-size: 24px;
             font-weight: bold;
             margin-bottom: 5px;
-        }
-
-        .header-banner p {
-            font-size: 14px;
-            opacity: 0.9;
         }
 
         /* Ana İçerik Alanları */
@@ -75,7 +94,7 @@
             background: var(--card-bg);
             border-radius: 15px;
             padding: 12px;
-            border: 1px solid #f1f2f6; /* Kartların beyaz zeminde belli olması için kibar bir kenarlık */
+            border: 1px solid #f1f2f6;
             box-shadow: 0 4px 12px rgba(0,0,0,0.02);
             display: flex;
             flex-direction: column;
@@ -100,35 +119,8 @@
             object-fit: cover;
         }
 
-        .urun-isim {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 4px;
-        }
-
-        .urun-aciklama {
-            font-size: 12px;
-            color: #7f8c8d;
-            height: 35px;
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-
-        .urun-alt-alan {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: auto;
-        }
-
-        .urun-fiyat {
-            font-weight: bold;
-            color: var(--pink-main);
-            font-size: 15px;
-        }
+        .urun-isim { font-size: 16px; font-weight: bold; }
+        .urun-fiyat { font-weight: bold; color: var(--pink-main); font-size: 15px; }
 
         .satun-al-btn {
             background-color: var(--purple-main);
@@ -139,156 +131,73 @@
             font-size: 12px;
             font-weight: bold;
             cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .satun-al-btn:hover {
-            transform: scale(1.05);
         }
 
         /* Alt Sekme Çubuğu (Tab Bar) */
         .tab-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 55px;
-            background: white;
-            border-top: 1px solid #e0e0e0;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            z-index: 100;
+            position: fixed; bottom: 0; left: 0; right: 0; height: 55px;
+            background: white; border-top: 1px solid #e0e0e0;
+            display: flex; justify-content: space-around; align-items: center; z-index: 100;
         }
 
-        .tab-item {
-            text-align: center;
-            color: #b2bec3;
-            cursor: pointer;
-            font-size: 12px;
-            flex: 1;
-            padding: 5px;
-        }
+        .tab-item { text-align: center; color: #b2bec3; cursor: pointer; font-size: 12px; flex: 1; }
+        .tab-item.active { color: var(--purple-main); font-weight: bold; }
+        .tab-item svg { width: 20px; height: 20px; display: block; margin: 0 auto 2px auto; fill: currentColor; }
 
-        .tab-item.active {
-            color: var(--purple-main);
-            font-weight: bold;
-        }
+        .page { display: none; }
+        .page.active { display: block; }
 
-        .tab-item svg {
-            width: 20px;
-            height: 20px;
-            display: block;
-            margin: 0 auto 2px auto;
-            fill: currentColor;
-        }
+        /* Form Elemanları */
+        .form-grup { margin-bottom: 15px; }
+        .form-grup label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 5px; }
+        .form-grup input, .form-grup textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px; }
 
-        /* Sayfa Gizleme/Gösterme */
-        .page {
-            display: none;
-        }
-
-        .page.active {
-            display: block;
-        }
-
-        /* Formlar ve Yönetici Paneli */
-        .form-grup {
-            margin-bottom: 15px;
-        }
-
-        .form-grup label {
-            display: block;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 5px;
-        }
-
-        .form-grup input, .form-grup textarea, .form-grup select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-
-        .panel-box {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            border: 1px solid #f1f2f6;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-            margin-bottom: 20px;
-        }
-
-        .btn-genis {
-            width: 100%;
-            background-color: var(--purple-main);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 15px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-
+        .panel-box { background: white; padding: 20px; border-radius: 15px; border: 1px solid #f1f2f6; margin-bottom: 20px; }
+        .btn-genis { width: 100%; background-color: var(--purple-main); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; }
         .btn-yesil { background-color: #2ecc71; }
         .btn-kirmizi { background-color: #e74c3c; }
 
-        /* Sipariş Kartı */
-        .siparis-karti {
-            background: #f8f9fa;
-            border-left: 4px solid var(--purple-main);
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            font-size: 13px;
-        }
-
-        /* Modal (Açılır Pencere) Tasarımı */
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 200;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .modal-icerik {
-            background: white;
-            padding: 20px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 100%;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        .iban-kutu {
-            background: #f1f2f6;
-            padding: 10px;
-            border-radius: 8px;
-            border: 1px dashed var(--purple-main);
-            font-size: 12px;
-            margin: 10px 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .kopyala-link {
-            color: #0984e3;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 200; align-items: center; justify-content: center; padding: 20px; }
+        .modal-icerik { background: white; padding: 20px; border-radius: 15px; max-width: 500px; width: 100%; }
+        .iban-kutu { background: #f1f2f6; padding: 10px; border-radius: 8px; border: 1px dashed var(--purple-main); font-size: 12px; margin: 10px 0; display: flex; justify-content: space-between; }
     </style>
 </head>
 <body>
+
+    <div id="giris-ekrani">
+        <div class="giris-kutu" id="kayit-adimi">
+            <h2 style="text-align: center; color: var(--purple-main); margin-bottom: 10px;">🌟 Coconat Shop</h2>
+            <p style="text-align: center; font-size: 12px; color: gray; margin-bottom: 20px;">Lütfen bilgilerinizi eksiksiz giriniz.</p>
+            <div class="form-grup">
+                <label>Adınız Soyadınız</label>
+                <input type="text" id="kayit-adsoyad" placeholder="Ahmet Yılmaz">
+            </div>
+            <div class="form-grup">
+                <label>E-posta Adresiniz</label>
+                <input type="email" id="kayit-eposta" placeholder="ornek@eposta.com">
+            </div>
+            <div class="form-grup">
+                <label>Telefon Numaranız</label>
+                <input type="tel" id="kayit-telefon" placeholder="0555...">
+            </div>
+            <div class="form-grup">
+                <label>Teslimat Adresiniz</label>
+                <textarea id="kayit-adres" rows="2" placeholder="Açık adresiniz..."></textarea>
+            </div>
+            <button class="btn-genis" onclick="dogrulamaKoduGonder()">Doğrulama Kodu Gönder</button>
+        </div>
+
+        <div class="giris-kutu" id="dogrulama-adimi" style="display: none;">
+            <h3 style="text-align: center; color: var(--purple-main); margin-bottom: 10px;">📧 E-posta Doğrulama</h3>
+            <p style="text-align: center; font-size: 12px; color: gray; margin-bottom: 20px;" id="kod-gonderildi-yazisi"></p>
+            <div class="form-grup">
+                <label>6 Haneli Doğrulama Kodu</label>
+                <input type="text" id="girilen-kod" placeholder="******" style="text-align: center; font-size: 20px; letter-spacing: 5px;" maxlength="6">
+            </div>
+            <button class="btn-genis btn-yesil" onclick="koduOnayla()">Kodu Doğrula ve Giriş Yap</button>
+            <button class="btn-genis btn-kirmizi" style="margin-top: 5px; padding: 5px;" onclick="geriDon()">Geri Dön</button>
+        </div>
+    </div>
 
     <div class="header-banner">
         <h1>Coconat Shop</h1>
@@ -296,317 +205,156 @@
     </div>
 
     <div class="container">
-        
         <div id="magaza-page" class="page active">
             <div class="section-title">
-                <span>Hazır Modeller</span>
-                <button id="admin-arti-btn" style="display:none; background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px; cursor:pointer;" onclick="modalAc('urun-ekle-modal')">+ Ürün Ekle</button>
+                <span>Ürünlerimiz</span>
+                <button id="admin-arti-btn" style="display:none; background:#2ecc71; color:white; border:none; padding:5px 10px; border-radius:5px; font-size:12px;" onclick="modalAc('urun-ekle-modal')">+ Ürün Ekle</button>
             </div>
             <div class="vitrin-grid" id="vitrin-liste">
                 </div>
         </div>
 
         <div id="hesap-page" class="page">
-            <div class="panel-box" id="user-info-box">
-                <div style="font-weight: bold; margin-bottom: 5px;">Kullanıcı Bilgilerim</div>
-                <div style="font-size: 14px; color: #636e72;">İsim: Uygar<br>Soyisim: Geliştirici</div>
+            <div class="panel-box">
+                <div style="font-weight: bold; margin-bottom: 8px; color: var(--purple-main);">🔒 Güvenli Profil Bilgilerim</div>
+                <div style="font-size: 13px; line-height: 1.6;">
+                    <strong>İsim:</strong> <span id="profil-ad"></span><br>
+                    <strong>E-posta:</strong> <span id="profil-eposta"></span><br>
+                    <strong>Telefon:</strong> <span id="profil-tel"></span><br>
+                    <strong>Adres:</strong> <span id="profil-adres"></span>
+                </div>
+                <div style="margin-top: 10px; background: #e8f0fe; padding: 8px; border-radius: 5px; font-size: 11px; color: #1a73e8; word-break: break-all;">
+                    <strong>🛡️ Sunucudaki Şifreli Haliniz (AES-256):</strong><br>
+                    <span id="sifreli-veri-gosterimi"></span>
+                </div>
             </div>
 
             <div class="panel-box" id="admin-login-box">
                 <div style="font-weight: bold; margin-bottom: 12px;">Yönetici Girişi</div>
-                <div class="form-grup">
-                    <input type="text" id="admin-kadi" placeholder="Kullanıcı Adı">
-                </div>
-                <div class="form-grup">
-                    <input type="password" id="admin-sifre" placeholder="Şifre">
-                </div>
-                <div id="login-hata" style="color:red; font-size:12px; margin-bottom:10px; display:none;">Hatalı kullanıcı adı veya şifre!</div>
-                <button class="btn-genis" onclick="adminGirisYap()">Yönetici Olarak Giriş Yap</button>
+                <div class="form-grup"><input type="text" id="admin-kadi" placeholder="Kullanıcı Adı"></div>
+                <div class="form-grup"><input type="password" id="admin-sifre" placeholder="Şifre"></div>
+                <button class="btn-genis" onclick="adminGirisYap()">Giriş Yap</button>
             </div>
 
             <div id="admin-panel-box" style="display: none;">
                 <div class="panel-box" style="border-top: 4px solid gold;">
-                    <div style="font-weight: bold; color: var(--text-color);">👑 Lorin Şimşek (Admin)</div>
+                    <div style="font-weight: bold; margin-bottom: 10px;">💰 Canlı IBAN Yönetimi</div>
+                    <div class="form-grup">
+                        <label>Güncel Alıcı Adı Soyadı</label>
+                        <input type="text" id="admin-iban-sahibi" value="Lorin Şimşek">
+                    </div>
+                    <div class="form-grup">
+                        <label>Güncel IBAN Numarası</label>
+                        <input type="text" id="admin-iban-no" value="TR99 0006 2000 0001 2345 6789 01">
+                    </div>
+                    <button class="btn-genis btn-yesil" onclick="ibanBilgileriniGuncelle()">IBAN Bilgilerini Sitede Güncelle</button>
                 </div>
 
-                <div class="section-title">Uygulamaya Gelen Siparişler</div>
+                <div class="section-title">Gelen Siparişler</div>
                 <div class="panel-box" id="gelen-siparisler-listesi">
-                    <p style="color: gray; font-size: 14px;">Henüz sipariş gelmedi.</p>
+                    <p style="color: gray;">Henüz sipariş gelmedi.</p>
                 </div>
-                
                 <button class="btn-genis btn-kirmizi" onclick="adminCikisYap()">Yönetici Çıkışı Yap</button>
             </div>
         </div>
-
     </div>
 
     <div class="tab-bar">
         <div class="tab-item active" id="tab-magaza" onclick="sekmeDegistir('magaza')">
-            <svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12z"/></svg>
-            Mağaza
+            <svg viewBox="0 0 24 24"><path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm7 17H5V8h14v12z"/></svg>Mağaza
         </div>
         <div class="tab-item" id="tab-hesap" onclick="sekmeDegistir('hesap')">
-            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-3-8-3z"/></svg>
-            Hesap
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5-3-8-3z"/></svg>Hesap
         </div>
     </div>
 
     <div class="modal" id="satinal-modal">
         <div class="modal-icerik">
-            <h3 style="margin-bottom: 15px;" id="modal-urun-baslik">Sipariş Bilgileri</h3>
-            
-            <div class="form-grup">
-                <label>Adınız Soyadınız</label>
-                <input type="text" id="siparis-adsoyad" placeholder="Örn: Ahmet Yılmaz">
-            </div>
-            <div class="form-grup">
-                <label>Telefon Numaranız</label>
-                <input type="tel" id="siparis-telefon" placeholder="Örn: 0555...">
-            </div>
-            <div class="form-grup">
-                <label>Teslimat Adresi</label>
-                <textarea id="siparis-adres" rows="2" placeholder="Açık adresinizi yazınız..."></textarea>
-            </div>
-
-            <div style="font-weight: bold; font-size: 13px; margin-top: 15px;">Ödeme Yapılacak IBAN Bilgisi</div>
+            <h3 id="modal-urun-baslik">Sipariş</h3>
+            <p style="font-size: 12px; color: gray; margin-bottom: 10px;">Profilinizdeki şifreli adresinize gönderilecektir.</p>
+            <div style="font-weight: bold; font-size: 13px;">Ödeme Yapılacak IBAN Bilgisi</div>
             <div class="iban-kutu">
                 <div>
-                    <strong>Alıcı:</strong> Lorin Şimşek<br>
-                    <span id="iban-no" style="color:var(--purple-main); font-weight:bold;">TR99 0006 2000 0001 2345 6789 01</span>
+                    <strong>Alıcı:</strong> <span id="vitrin-iban-sahibi">Lorin Şimşek</span><br>
+                    <span id="vitrin-iban-no" style="color:var(--purple-main); font-weight:bold;">TR99 0006 2000 0001 2345 6789 01</span>
                 </div>
-                <div class="kopyala-link" onclick="ibanKopyala()">Kopyala</div>
             </div>
-            <p style="font-size: 11px; color: gray; margin-bottom: 15px;" id="kopyala-onay">Ücreti bu IBAN'a gönderdikten sonra siparişi tamamlayın.</p>
-
-            <button class="btn-genis btn-yesil" onclick="siparisTamamla()">EFT/Havale Yapıldı, Siparişi Ver</button>
-            <button class="btn-genis btn-kirmizi" style="margin-top:5px; padding:8px;" onclick="modalKapat('satinal-modal')">İptal</button>
+            <button class="btn-genis btn-yesil" onclick="siparisTamamla()">Siparişi Tamamla</button>
+            <button class="btn-genis btn-kirmizi" style="margin-top:5px; padding:5px;" onclick="modalKapat('satinal-modal')">İptal</button>
         </div>
     </div>
 
     <div class="modal" id="urun-ekle-modal">
         <div class="modal-icerik">
-            <h3 style="margin-bottom: 15px;">Yeni Ürün Ekle</h3>
-            <div class="form-grup">
-                <label>Bileklik Adı</label>
-                <input type="text" id="yeni-urun-ad">
-            </div>
-            <div class="form-grup">
-                <label>Fiyatı (TL)</label>
-                <input type="number" id="yeni-urun-fiyat">
-            </div>
-            <div class="form-grup">
-                <label>Kullanılan Renkler</label>
-                <input type="text" id="yeni-urun-renkler" placeholder="Mavi, Pembe vb.">
-            </div>
-            <div class="form-grup">
-                <label>Fotoğraf Seç (Cihazdan Gerçek Fotoğraf)</label>
-                <input type="file" id="yeni-urun-dosya" accept="image/*">
-            </div>
-            <div class="form-grup">
-                <label>Ürün Açıklaması</label>
-                <textarea id="yeni-urun-aciklama" rows="2"></textarea>
-            </div>
-            <button class="btn-genis btn-yesil" onclick="urunEkle()">Ürünü Mağazaya Yükle</button>
-            <button class="btn-genis btn-kirmizi" style="margin-top:5px; padding:8px;" onclick="modalKapat('urun-ekle-modal')">Kapat</button>
+            <h3>Yeni Ürün Ekle</h3>
+            <div class="form-grup"><label>Ürün Adı</label><input type="text" id="yeni-urun-ad"></div>
+            <div class="form-grup"><label>Fiyatı</label><input type="number" id="yeni-urun-fiyat"></div>
+            <div class="form-grup"><label>Fotoğraf</label><input type="file" id="yeni-urun-dosya" accept="image/*"></div>
+            <button class="btn-genis btn-yesil" onclick="urunEkle()">Yükle</button>
+            <button class="btn-genis btn-kirmizi" style="margin-top:5px; padding:5px;" onclick="modalKapat('urun-ekle-modal')">Kapat</button>
         </div>
     </div>
 
     <script>
-        let bileklikler = [
-            { id: 1, isim: "Gökkuşağı Esintisi", fiyat: 45.00, aciklama: "Rengarenk boncuklarla süslenmiş şirin yaz bilekliği.", renkler: "Pembe, Mavi, Sarı", gercekFotograf: null },
-            { id: 2, isim: "Gece Yıldızı", fiyat: 50.00, aciklama: "Siyah ve gold detaylı asil bir tasarım.", renkler: "Siyah, Altın", gercekFotograf: null }
-        ];
+        const GUVELIK_ANAHTARI = "CoconatSecretKey123"; // Şifreleme anahtarı (Salt)
+        let olusturulanKod = ""; 
+        let geciciVeri = {};
 
+        // Hazır ürünler kaldırıldı, vitrin tamamen dinamik ve boş başlıyor!
+        let bileklikler = [];
         let gelenSiparisler = [];
-        let isAdminGirisYapti = false;
         let secilenBileklik = null;
 
-        function vitrinGuncelle() {
-            const liste = document.getElementById('vitrin-liste');
-            liste.innerHTML = '';
-
-            bileklikler.forEach(urun => {
-                let gorselHtml = '<span style="color:var(--purple-main)">✨</span>';
-                if(urun.gercekFotograf) {
-                    gorselHtml = `<img src="${urun.gercekFotograf}" alt="${urun.isim}">`;
-                }
-
-                liste.innerHTML += `
-                    <div class="urun-karti">
-                        <div class="urun-gorsel-alani">${gorselHtml}</div>
-                        <div class="urun-isim">${urun.isim}</div>
-                        <div class="urun-aciklama">${urun.aciklama}</div>
-                        <div class="urun-alt-alan">
-                            <span class="urun-fiyat">${urun.fiyat.toFixed(2)} TL</span>
-                            <button class="satun-al-btn" onclick="satinAlimBaslat(${urun.id})">Satın Al</button>
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        function sekmeDegistir(sekmeIsmi) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-
-            if(sekmeIsmi === 'magaza') {
-                document.getElementById('magaza-page').classList.add('active');
-                document.getElementById('tab-magaza').classList.add('active');
-            } else if(sekmeIsmi === 'hesap') {
-                document.getElementById('hesap-page').classList.add('active');
-                document.getElementById('tab-hesap').classList.add('active');
+        window.onload = function() {
+            // Eğer önceden şifreli veri varsa çözüp giriş yaptır
+            const sifreliData = localStorage.getItem('coconat_secure_user');
+            if(sifreliData) {
+                try {
+                    constcozulenBaytlar = CryptoJS.AES.decrypt(sifreliData, GUVELIK_ANAHTARI);
+                    const cozulenYazi = cozulenBaytlar.toString(CryptoJS.enc.Utf8);
+                    const user = JSON.parse(cozulenYazi);
+                    
+                    document.getElementById('giris-ekrani').style.display = 'none';
+                    profilArayuzunuDoldur(user, sifreliData);
+                } catch(e) { localStorage.clear(); }
             }
+            
+            // Kayıtlı admin IBAN'ı varsa getir
+            if(localStorage.getItem('admin_iban')) {
+                document.getElementById('admin-iban-no').value = localStorage.getItem('admin_iban');
+                document.getElementById('vitrin-iban-no').innerText = localStorage.getItem('admin_iban');
+            }
+            if(localStorage.getItem('admin_iban_sahibi')) {
+                document.getElementById('admin-iban-sahibi').value = localStorage.getItem('admin_iban_sahibi');
+                document.getElementById('vitrin-iban-sahibi').innerText = localStorage.getItem('admin_iban_sahibi');
+            }
+            vitrinGuncelle();
         }
 
-        function modalAc(id) { document.getElementById(id).style.display = 'flex'; }
-        function modalKapat(id) { document.getElementById(id).style.display = 'none'; }
+        // 1. ADIM: E-POSTA DOĞRULAMA KODU OLUŞTURMA
+        function dogrulamaKoduGonder() {
+            const ad = document.getElementById('kayit-adsoyad').value;
+            const eposta = document.getElementById('kayit-eposta').value;
+            const tel = document.getElementById('kayit-telefon').value;
+            const adres = document.getElementById('kayit-adres').value;
 
-        function satinAlimBaslat(id) {
-            secilenBileklik = bileklikler.find(u => u.id === id);
-            document.getElementById('modal-urun-baslik').innerText = `${secilenBileklik.isim} - ${secilenBileklik.fiyat.toFixed(2)} TL`;
-            modalAc('satinal-modal');
-        }
-
-        function ibanKopyala() {
-            const ibanText = document.getElementById('iban-no').innerText;
-            navigator.clipboard.writeText(ibanText);
-            const onay = document.getElementById('kopyala-onay');
-            onay.innerText = "IBAN Kopyalandı! Panoya Hazır.";
-            onay.style.color = "green";
-            setTimeout(() => {
-                onay.innerText = "Ücreti bu IBAN'a gönderdikten sonra siparişi tamamlayın.";
-                onay.style.color = "gray";
-            }, 2000);
-        }
-
-        function siparisTamamla() {
-            const adSoyad = document.getElementById('siparis-adsoyad').value;
-            const telefon = document.getElementById('siparis-telefon').value;
-            const adres = document.getElementById('siparis-adres').value;
-
-            if(!adSoyad || !telefon || !adres) {
-                alert("Lütfen kişi ve adres bilgilerini boş bırakmayın!");
+            if(!ad || !eposta || !tel || !adres) {
+                alert("Lütfen tüm alanları doldurun!");
                 return;
             }
 
-            const yeniSiparis = {
-                urunAdi: secilenBileklik.isim,
-                fiyat: secilenBileklik.fiyat,
-                musteriAdSoyad: adSoyad,
-                musteriTelefon: telefon,
-                musteriAdres: adres
-            };
-
-            gelenSiparisler.push(yeniSiparis);
-            siparisPaneliniGuncelle();
-
-gelenSiparisler.push(yeniSiparis);
-            siparisPaneliniGuncelle();
-
-            const mesaj = `🎉 COCONUT SHOP YENİ SİPARİŞ! 🎉\n----------------------------------\n🛍 Ürün: ${secilenBileklik.isim}\n💰 Tutar: ${secilenBileklik.fiyat.toFixed(2)} TL\n💳 Ödeme: IBAN (EFT) Transferi\n----------------------------------\n👤 Müşteri: ${adSoyad}\n📞 Tel: ${telefon}\n📍 Adres: ${adres}\n----------------------------------`;
+            // 6 Haneli Rastgele Doğrulama Kodu Üret (Simülasyon)
+            olusturulanKod = Math.floor(100000 + Math.random() * 900000).toString();
             
-            navigator.clipboard.writeText(mesaj);
-            alert("Sipariş özetiniz kopyalandı! Şimdi siparişi onaylamak için Instagram sayfamıza yönlendiriliyorsunuz.");
+            // Geçici olarak bilgileri tut
+            geciciVeri = { adSoyad: ad, eposta: eposta, telefon: tel, adres: adres };
 
-            modalKapat('satinal-modal');
+            // Gerçek sunucu olmadığı için kodu ekranda alert ile gösteriyoruz
+            alert(`📧 E-posta sunucu simülasyonu:\n\n${eposta} adresine doğrulama kodu gönderildi!\n\nDOĞRULAMA KODUNUZ: ${olusturulanKod}`);
             
-            document.getElementById('siparis-adsoyad').value = '';
-            document.getElementById('siparis-telefon').value = '';
-            document.getElementById('siparis-adres').value = '';
-
-            window.open("https://www.instagram.com/coconut_02026/", "_blank");
+            document.getElementById('kayit-adimi').style.display = 'none';
+            document.getElementById('dogrulama-adimi').style.display = 'block';
+            document.getElementById('kod-gonderildi-yazisi').innerText = `${eposta} adresine gelen 6 haneli kodu yazın.`;
         }
 
-        function siparisPaneliniGuncelle() {
-            const liste = document.getElementById('gelen-siparisler-listesi');
-            if(gelenSiparisler.length === 0) {
-                liste.innerHTML = '<p style="color: gray; font-size: 14px;">Henüz sipariş gelmedi.</p>';
-                return;
-            }
-
-            liste.innerHTML = '';
-            gelenSiparisler.forEach(s => {
-                liste.innerHTML += `
-                    <div class="siparis-karti">
-                        <strong>🛍 Ürün:</strong> ${s.urunAdi}<br>
-                        <strong>👤 Müşteri:</strong> ${s.musteriAdSoyad}<br>
-                        <strong>📞 Tel:</strong> ${s.musteriTelefon}<br>
-                        <strong>📍 Adres:</strong> ${s.musteriAdres}<br>
-                        <span style="color:var(--pink-main); font-weight:bold;">💰 Tutar: ${s.fiyat.toFixed(2)} TL</span>
-                    </div>
-                `;
-            });
-        }
-
-        function adminGirisYap() {
-            const kadi = document.getElementById('admin-kadi').value;
-            const sifre = document.getElementById('admin-sifre').value;
-
-            if(kadi === 'lorin' && sifre === 'lorin2018') {
-                isAdminGirisYapti = true;
-                document.getElementById('admin-login-box').style.display = 'none';
-                document.getElementById('admin-panel-box').style.display = 'block';
-                document.getElementById('admin-arti-btn').style.display = 'block';
-                document.getElementById('login-hata').style.display = 'none';
-                siparisPaneliniGuncelle();
-            } else {
-                document.getElementById('login-hata').style.display = 'block';
-            }
-        }
-
-        function adminCikisYap() {
-            isAdminGirisYapti = false;
-            document.getElementById('admin-login-box').style.display = 'block';
-            document.getElementById('admin-panel-box').style.display = 'none';
-            document.getElementById('admin-arti-btn').style.display = 'none';
-            document.getElementById('admin-kadi').value = '';
-            document.getElementById('admin-sifre').value = '';
-        }
-
-        function urunEkle() {
-            const ad = document.getElementById('yeni-urun-ad').value;
-            const fiyat = parseFloat(document.getElementById('yeni-urun-fiyat').value);
-            const renkler = document.getElementById('yeni-urun-renkler').value;
-            const aciklama = document.getElementById('yeni-urun-aciklama').value;
-            const dosyaGirdisi = document.getElementById('yeni-urun-dosya');
-
-            if(!ad || !fiyat) {
-                alert("Lütfen ürün adı ve fiyat alanlarını doldurun!");
-                return;
-            }
-
-            const yeniUrun = {
-                id: Date.now(),
-                isim: ad,
-                fiyat: fiyat,
-                aciklama: aciklama,
-                renkler: renkler,
-                gercekFotograf: null
-            };
-
-            if (dosyaGirdisi.files && dosyaGirdisi.files[0]) {
-                const okuyucu = new FileReader();
-                okuyucu.onload = function(e) {
-                    yeniUrun.gercekFotograf = e.target.result;
-                    bileklikler.unshift(yeniUrun);
-                    vitrinGuncelle();
-                }
-                okuyucu.readAsDataURL(dosyaGirdisi.files[0]);
-            } else {
-                bileklikler.unshift(yeniUrun);
-                vitrinGuncelle();
-            }
-
-            modalKapat('urun-ekle-modal');
-            
-            document.getElementById('yeni-urun-ad').value = '';
-            document.getElementById('yeni-urun-fiyat').value = '';
-            document.getElementById('yeni-urun-renkler').value = '';
-            document.getElementById('yeni-urun-aciklama').value = '';
-            dosyaGirdisi.value = '';
-        }
-
-        vitrinGuncelle();
-    </script>
-</body>
-</html>
+        // 2. ADIM: KODU ONAYLAMA VE AES
